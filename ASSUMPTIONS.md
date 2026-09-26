@@ -57,7 +57,7 @@ Price = build cost + professional fees + marketing and legal + developer profit 
 | 5.2 | Overseas ownership (`OCOD_DIR`) | Newest OCOD full file, `District` = `KENSINGTON AND CHELSEA` | [S9] (free account needed) | Sourced |
 | 5.3 | Ownership layer covers flats and houses | All tenures and property types | Overseas-company ownership is mostly flats. The land share (houses only) and the ownership layer are shown side by side, not combined | Team choice |
 | 5.4 | Map location | Postcode centroid [S10] | Neither Price Paid nor OCOD has coordinates. Points that share a postcode are spread about 10 m apart so each can be hovered | Team choice |
-| 5.5 | OCOD to sale match | Same normalised postcode and same house number or name (PAON) | Exact match, no fuzzy matching. Flat titles and titles with `Multiple Address Indicator` = Y are not matched to house sales | Team choice |
+| 5.5 | OCOD to sale match | Same normalised postcode, same house number or name (PAON), and the sale's street appears in the title address | Exact match, no fuzzy matching. Flat titles and titles with `Multiple Address Indicator` = Y are not matched to house sales | Team choice |
 
 ## 6. Detailed London map (neighbourhoods and individual sales)
 
@@ -96,8 +96,12 @@ Matching was done by the authors of [S2]; we join to Price Paid on transaction I
 ### Kensington and Chelsea street map (`python -m src.ocod`)
 
 - House sales in the borough, 2023: **349**. With a postcode location: **349 (100%)**.
-- House sales matched to an overseas-company title (postcode + house number or name): **not yet run**. It needs the OCOD full file in `data/raw/ocod/`. Rerun `python -m src.ocod` and copy the printed figures here.
-- Expect a low match rate. OCOD is today's owners, not 2023 buyers, most overseas-company titles are flats, and category A sales exclude many company sales. The street map therefore shows the two layers side by side rather than relying on the match.
+- OCOD file: `OCOD_FULL_2026_09.csv` (published 2 September 2026), 91,110 titles in England and Wales.
+- Overseas-company titles in the borough: **4,950** (2,235 flats by address, 102 multiple-address). With a postcode location: **93.8%** (264 have no postcode, e.g. "land on the north side of…"; 42 have a postcode that postcodes.io does not know).
+- Place of incorporation: British Virgin Islands 1,854 (37%), Jersey 661, Guernsey 538, Isle of Man 495, Panama 139, Cayman Islands 84. These six: **3,771 (76%)**.
+- House sales in a postcode with at least one overseas-company title: **160 of 349 (45.8%)**.
+- House sales matched to an overseas-company title (postcode + house number or name + street): **1 of 349 (0.3%)**: 9 St Catherines Mews, SW3 (Jersey company; OCOD price paid equals the 2023 sale price, £2.8m). Without the street check a second, false match appeared (a flat at 19 Francis House matched 19 Burnaby Street), so the street check is kept.
+- The low match rate is expected. OCOD is today's owners, not 2023 buyers, most overseas-company titles are flats, and category A sales exclude many company sales. The street map therefore shows the two layers side by side rather than relying on the match.
 
 ## Validation
 

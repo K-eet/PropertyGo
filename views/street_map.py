@@ -4,7 +4,7 @@ import streamlit as st
 
 import config
 from src.costs import split_price
-from src.streetmap import aggregate_ocod, sale_address, street_map
+from src.streetmap import aggregate_ocod, country_name, sale_address, street_map
 from src.ui import LAND_LABEL, file_version, gbp, method_caption
 
 SALES_FILE = config.PROCESSED / f"kc_sales_{config.YEAR}.parquet"
@@ -79,15 +79,17 @@ with left:
     m3.metric(f"{label} share", f"{p['land_share']:.0%}", gbp(p["land"]), delta_color="off")
     if row["offshore_company_title"]:
         st.error(f"This title is now held by {str(row['proprietor']).title()}, "
-                 f"incorporated in {str(row['country_incorporated']).title()}.")
+                 f"incorporated in {country_name(pd.Series([row['country_incorporated']])).iloc[0]}.")
 with right:
     if ocod is not None:
         st.subheader("Where the owning companies are registered")
-        countries = (ocod["country_incorporated"].fillna("Unknown").str.title()
+        countries = (country_name(ocod["country_incorporated"])
                      .value_counts().head(10).rename_axis("Country").reset_index(name="Titles"))
         st.dataframe(countries, hide_index=True, width="stretch")
-        st.caption(f"{int(kc['offshore_company_title'].sum())} of {len(kc)} house sales in {config.YEAR} "
-                   "match a title now held by an overseas company (same postcode and house number or name).")
+        in_pc = (kc["ocod_titles_in_postcode"] > 0).mean()
+        st.caption(f"{in_pc:.0%} of house sales in {config.YEAR} were in a postcode with at least one "
+                   f"overseas-company title. {int(kc['offshore_company_title'].sum())} of {len(kc)} match a "
+                   "title now held by an overseas company (same postcode, house number or name, and street).")
 
 st.caption(
     "**Street map.** Houses only for the land share; the red layer includes flats. OCOD lists overseas "
