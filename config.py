@@ -5,7 +5,15 @@ Every value here must have a source recorded in ASSUMPTIONS.md.
 from pathlib import Path
 
 # --- Scope -----------------------------------------------------------------
-YEAR = 2025  # most recent full calendar year in Price Paid Data
+# Most recent full year in the pre-linked Price Paid x EPC dataset (it ends 31 Oct 2024).
+YEAR = 2023
+
+# Sanity limits on EPC floor area (m²) for a house. Records outside are dropped.
+FLOOR_AREA_MIN_M2 = 30
+FLOOR_AREA_MAX_M2 = 1000
+
+# Boroughs with fewer sales than this are shown as 'too few sales' (e.g. City of London).
+MIN_SALES_PER_BOROUGH = 30
 
 # Price Paid property types kept for the main result (houses only).
 # D = detached, S = semi-detached, T = terraced. F (flat) and O (other) are excluded.
@@ -37,3 +45,5 @@ BOROUGH_SHP = (
     / "London_Borough_Excluding_MHW.shp"
 )
 LAND_VALUES_FILE = RAW / "land_value_estimates_2023.xlsx"
+# House price per m² (Price Paid x EPC, pre-linked), one CSV per local authority.
+HPM_DIR = RAW / "hpm" / "hpm_la_2024" / "hpm_la_2024"

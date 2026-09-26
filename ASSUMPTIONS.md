@@ -6,7 +6,7 @@ Each assumption lists its value, its source, and its status. Values live in `con
 
 | # | Assumption | Value | Source | Status |
 |---|---|---|---|---|
-| 1 | Year of sales (`YEAR`) | 2025 | Most recent full calendar year in HM Land Registry Price Paid Data (file updated 28 Aug 2026) | Confirmed |
+| 1 | Year of sales (`YEAR`) | 2023 | Latest full year in the pre-linked Price Paid x EPC dataset (it ends 31 Oct 2024). Price Paid has 2025, but using it would need our own address matching | Confirmed |
 | 2 | London sales only | County = `GREATER LONDON` | Price Paid Data county field | Confirmed |
 | 3 | Houses only (`HOUSE_TYPES`) | D, S, T | Flats share land, so the land share of a flat is not clear | Confirmed |
 | 4 | Standard sales only (`PPD_CATEGORIES`) | A | Category B includes repossessions, buy-to-let and company sales, which are not full market value | Confirmed |
@@ -15,6 +15,9 @@ Each assumption lists its value, its source, and its status. Values live in `con
 | 7 | Labour share of build cost (`LABOUR_SHARE`) | 45% | **No source yet.** Candidate: ONS Input-Output Analytical Tables, construction compensation of employees | **PROVISIONAL ESTIMATE** |
 | 8 | Borough assignment | Price Paid `district` field mapped to GSS code | Only one name differs: `CITY OF WESTMINSTER` → Westminster | Confirmed |
 | 9 | Freehold and leasehold houses both kept | — | Leasehold houses are a small share in London | Confirmed |
+| 10 | Floor area source | EPC total floor area (`tfarea`) | House Price per Square Metre dataset, London Datastore (Price Paid x EPC, pre-linked by the dataset authors) | Confirmed |
+| 11 | Floor area sanity limits | 30 to 1,000 m² | Team choice; removes 16 records | Confirmed |
+| 12 | Minimum sales per borough on the map | 30 | Team choice. Only City of London falls below (1 house sale) | Confirmed |
 
 ## Validation data
 
@@ -22,7 +25,16 @@ Each assumption lists its value, its source, and its status. Values live in `con
 
 ## Match rate
 
-Not measured yet. Record here when the Price Paid to EPC address matching is complete.
+- London houses (D/S/T), category A, 2023 in Price Paid: **33,919**
+- Linked to an EPC floor area: **32,502 (95.8%)**
+- After floor area limits: **32,486 (95.8%)**
+
+Matching done by the House Price per Square Metre dataset authors; we join to Price Paid on transaction ID.
+
+## Validation
+
+- Borough rank of our median land share against MHCLG residential land value (£/ha, 2023): Spearman ρ = **0.63** (low density), **0.70** (medium density), 32 boroughs.
+- Build cost ±20%: the lowest borough (Barking and Dagenham) moves from 49% to a range of 39% to 59%; the highest (Kensington and Chelsea) from 87% to 85% to 90%. The ranking does not change.
 
 ## Known limits (for the presentation)
 

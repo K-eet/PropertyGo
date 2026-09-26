@@ -25,7 +25,7 @@ Do not start item 3 until items 1 and 2 are complete.
 
 1. Get sale prices from HM Land Registry Price Paid Data.
 2. Get floor area from the EPC register (Energy Performance Certificates).
-3. Match the two datasets by address.
+3. Match the two datasets. **Done for us:** use the pre-linked House Price per Square Metre dataset (see below), joined to Price Paid on transaction ID. Our own address matching is now only a fallback.
 4. Calculate estimated build cost: floor area multiplied by `BUILD_COST_PER_M2`.
 5. Calculate land share: (sale price minus build cost) divided by sale price.
 6. Aggregate by borough with medians, not means.
@@ -34,8 +34,9 @@ Do not start item 3 until items 1 and 2 are complete.
 
 ### Core (required)
 
-- **Price Paid Data:** HM Land Registry, CSV download. The CSV has no header row. Column order is in `src/prices.py` (from the official guidance). Keep county `GREATER LONDON`, property type D/S/T, PPD category A only. Downloaded: `data/raw/pp-2025.csv`. The `prod.publicdata...` host may not resolve; use `http://prod2.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-<YEAR>.csv`.
-- **EPC register:** Energy Performance Certificates, domestic data. Download needs a free registration, so a team member must download it by hand. Get the 33 London local authorities only. Floor area is in the certificate data. Print the columns before use.
+- **House Price per Square Metre (Price Paid x EPC, pre-linked):** https://data.london.gov.uk/dataset/house-price-per-square-metre-in-england-and-wales. One CSV per local authority with `transactionid`, `price`, `tfarea` (EPC floor area), `lad23cd`, `classt` (11 = one EPC, 12 = several). Field list in `data/raw/hpm/Readme.pdf`. Latest file ends 31 Oct 2024, so **2023 is the latest full year**. Downloaded: `data/raw/hpm/`. Loader: `src/linked.py`.
+- **Price Paid Data:** HM Land Registry, CSV download. The CSV has no header row. Column order is in `src/prices.py` (from the official guidance). Keep county `GREATER LONDON`, property type D/S/T, PPD category A only. Needed to filter category A and to measure the match rate. Downloaded: `data/raw/pp-2023.csv`, `data/raw/pp-2025.csv`. The `prod.publicdata...` host may not resolve; use `http://prod2.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-<YEAR>.csv`.
+- **EPC register:** https://get-energy-performance-data.communities.gov.uk/. Only needed if we extend to 2025 sales with our own address matching. Not needed for the main result.
 - **Borough boundaries:** London Datastore, statistical GIS boundary files. Downloaded: `data/raw/london_boundaries/`. Use `London_Borough_Excluding_MHW.shp`. Join on `GSS_CODE`, not the name.
 
 ### For assumptions in `config.py`
@@ -48,6 +49,16 @@ Do not start item 3 until items 1 and 2 are complete.
 - **MHCLG Land Value Estimates for Policy Appraisal 2023:** residential land £/ha per borough. Downloaded: `data/raw/land_value_estimates_2023.xlsx`. Use to check the borough ranking only.
 - **Forest MCP:** open UK data, one value per parliamentary constituency (PCON24), not per borough or per sale. It cannot replace Price Paid + EPC. Useful for context: `average_house_price_gbp` (ONS UK HPI, to cross-check our medians), `parliament_house_price_to_earnings_ratio`, `homes_completed_annual`, `dwelling_flat_pct`, `bedrooms_*_pct` (fallback proxy for floor area if matching fails).
 - **Postcode lookup (demo only):** postcodes.io API, or ONS Postcode Directory if offline.
+
+### Team list: other datasets (not used in the main result; use for extra slides only if time permits)
+
+- **Demand and need:** WhereToBuild (wheretobuild.warwick.ac.uk), ONS Census 2021 (Nomis), English Indices of Deprivation 2025, GLA Housing in London report.
+- **Supply:** Planning London Datahub starts/completions dashboards, London Development Database export, Affordable Housing Open Data, GLA Affordable Housing Programme outturn, EPCs for new dwellings, MHCLG indicators of new supply, Housing Delivery Test.
+- **Planning process:** planning.data.gov.uk API, Digital Planning Register, UK PlanIt API, London Plan Opportunity Areas, planning application live tables, Digital Planning Data Schemas.
+- **Land, price, ownership:** UK House Price Index, vacant dwellings (Live Table 615), OCOD/CCOD company ownership, brownfield land registers (planning.data.gov.uk).
+- **Glue:** ONS geography lookups (LSOA/MSOA/ward/borough), Local Planning Authority boundaries, OS Open Data.
+
+Best candidates for a second slide: Housing Delivery Test or LDD completions per borough (supply) against our land share (price), and brownfield land per borough.
 
 Before you write code for a dataset, load a sample and print the columns and data types.
 Do not guess field names.
@@ -69,7 +80,9 @@ Keep all assumptions in `config.py`:
 
 Do not put numbers for these assumptions directly in analysis code.
 
-## Address matching
+## Address matching (fallback only)
+
+The pre-linked dataset removes this task for 2023. Use the steps below only for years it does not cover.
 
 This is the highest risk task. Limit it to two hours.
 
