@@ -28,15 +28,23 @@ def load_summary() -> pd.DataFrame:
     return pd.read_csv(config.OUTPUTS / f"borough_summary_{config.YEAR}.csv")
 
 
-@st.cache_data
-def load_target_sales() -> pd.DataFrame:
-    return pd.read_parquet(config.PROCESSED / f"kc_sales_{config.YEAR}.parquet")
+TARGET_SALES_FILE = config.PROCESSED / f"kc_sales_{config.YEAR}.parquet"
+TARGET_OCOD_FILE = config.PROCESSED / "kc_ocod.parquet"
+
+
+def file_version(path):
+    """Modification time, so cached data reloads after `python -m src.ocod` is rerun."""
+    return path.stat().st_mtime if path.exists() else None
 
 
 @st.cache_data
-def load_target_ocod():
-    path = config.PROCESSED / "kc_ocod.parquet"
-    return pd.read_parquet(path) if path.exists() else None
+def load_target_sales(version) -> pd.DataFrame:
+    return pd.read_parquet(TARGET_SALES_FILE)
+
+
+@st.cache_data
+def load_target_ocod(version):
+    return pd.read_parquet(TARGET_OCOD_FILE) if version is not None else None
 
 
 @st.cache_data
@@ -105,8 +113,8 @@ def show_split(price, floor_area, cost_per_m2, heading):
 # --- Street map tab ----------------------------------------------------------
 def render_street_map(cost_per_m2):
     name = config.TARGET_BOROUGH_NAME
-    kc = load_target_sales()
-    ocod = load_target_ocod()
+    kc = load_target_sales(file_version(TARGET_SALES_FILE))
+    ocod = load_target_ocod(file_version(TARGET_OCOD_FILE))
 
     st.header(f"Walk {name}: land, not bricks")
     st.write(
