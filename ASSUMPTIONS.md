@@ -101,11 +101,12 @@ Matching was done by the authors of [S2]; we join to Price Paid on transaction I
 - Place of incorporation: British Virgin Islands 1,854 (37%), Jersey 661, Guernsey 538, Isle of Man 495, Panama 139, Cayman Islands 84. These six: **3,771 (76%)**.
 - House sales in a postcode with at least one overseas-company title: **160 of 349 (45.8%)**.
 - House sales matched to an overseas-company title (postcode + house number or name + street): **1 of 349 (0.3%)**: 9 St Catherines Mews, SW3 (Jersey company; OCOD price paid equals the 2023 sale price, £2.8m). Without the street check a second, false match appeared (a flat at 19 Francis House matched 19 Burnaby Street), so the street check is kept.
+- London-wide comparison (same OCOD file, `Region` = `GREATER LONDON`, 39,127 titles): **3.9%** of London house sales in 2023 were in a postcode with an overseas-company title, against 45.8% in Kensington and Chelsea, the highest of 33 boroughs (Westminster 36.7%, Hammersmith and Fulham 17.8%). Across the 32 boroughs with enough sales, this share and the median resale land share have a Spearman rank correlation of **0.82**. This is an association, not evidence of cause.
 - The low match rate is expected. OCOD is today's owners, not 2023 buyers, most overseas-company titles are flats, and category A sales exclude many company sales. The street map therefore shows the two layers side by side rather than relying on the match.
 
 ## Validation
 
-- Borough rank of our median resale land share against MHCLG residential land value (£/ha, 2023) [S4]: Spearman ρ = **0.63** (low density), **0.70** (medium density), 32 boroughs. MHCLG values a hypothetical new-build scheme, so we compare rankings only, not amounts.
+- Borough rank of our median resale land share against MHCLG residential land value (£/ha, 2023) [S4]: Spearman ρ = **0.63** (low density), **0.70** (medium density), 32 boroughs (rechecked at £1,900/m²). MHCLG values a hypothetical new-build scheme, so we compare rankings only, not amounts.
 
 ## Known limits (for the presentation)
 
