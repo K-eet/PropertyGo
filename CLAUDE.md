@@ -127,7 +127,7 @@ Do not add other frameworks.
 
 - Build cost is an estimate from one cost per square metre, not the real cost of each home.
 - The labour and materials split is a national estimate, not data for each home.
-- The land share includes developer profit and other costs, not only land.
+- Resale land share is land and location (no developer profit in a resale). New-build land share subtracts a standard developer profit (15–20% of price, planning guidance) and other development costs.
 - Unmatched addresses can make the sample less representative.
 - EPC floor area can be old or incorrect.
 

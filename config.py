@@ -33,6 +33,16 @@ BUILD_COST_SENSITIVITY = (0.8, 1.2)
 # PROVISIONAL ESTIMATE: national labour share of build cost. Label as an estimate in outputs.
 LABOUR_SHARE = 0.45
 
+# --- New-build appraisal (not used for resales: a homeowner seller makes no developer profit) ---
+# Developer profit as a share of sale price. PPG Viability para 018: 15-20% of gross
+# development value is a suitable return for plan-making. We use the midpoint.
+DEVELOPER_PROFIT_SHARE_OF_PRICE = 0.175
+# PROVISIONAL: professional fees, finance, sales and marketing, as a share of build cost.
+OTHER_DEV_COSTS_SHARE_OF_BUILD = 0.15
+
+# Calculation modes.
+MODES = {"resale": "Resale (existing house)", "new_build": "New build (developer appraisal)"}
+
 # --- Paths -----------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 RAW = ROOT / "data" / "raw"

@@ -18,10 +18,22 @@ Each assumption lists its value, its source, and its status. Values live in `con
 | 10 | Floor area source | EPC total floor area (`tfarea`) | House Price per Square Metre dataset, London Datastore (Price Paid x EPC, pre-linked by the dataset authors) | Confirmed |
 | 11 | Floor area sanity limits | 30 to 1,000 m² | Team choice; removes 16 records | Confirmed |
 | 12 | Minimum sales per borough on the map | 30 | Team choice. Only City of London falls below (1 house sale) | Confirmed |
+| 13 | Resale: no developer profit | 0 | The seller of an existing house is a homeowner. 99.6% of 2023 London house sales were resales (32,345 of 32,486) | Confirmed |
+| 14 | New build: developer profit (`DEVELOPER_PROFIT_SHARE_OF_PRICE`) | 17.5% of sale price | Planning Practice Guidance, Viability, para 018: 15–20% of gross development value. Midpoint used | Confirmed (source: PPG) |
+| 15 | New build: fees, finance, sales and marketing (`OTHER_DEV_COSTS_SHARE_OF_BUILD`) | 15% of build cost | **No source yet** | **PROVISIONAL** |
+| 16 | New-build method on the borough map | Applied to all sales at local prices | Only 141 actual new-build house sales in 2023; no borough has 30. Read as "if this house were sold new" | Confirmed |
 
 ## Validation data
 
 - **MHCLG Land Value Estimates for Policy Appraisal 2023** (published March 2026, valuation date 1 Oct 2023). Residential land value in £/ha per local authority. We use the low-density median as the comparison for houses. It is used to check the borough ranking, not in the main calculation.
+
+## Results by type of sale (London, 2023)
+
+| | Sales | Median price | Median land share |
+|---|---|---|---|
+| Resales, resale method | 32,345 | £625,000 | 61% |
+| Actual new builds, new-build method | 141 | £690,000 | 36% |
+| All sales, new-build method | 32,486 | | 38% |
 
 ## Match rate
 
@@ -40,7 +52,8 @@ Matching done by the House Price per Square Metre dataset authors; we join to Pr
 
 - Build cost is an estimate from one cost per square metre, not the real cost of each home.
 - The labour and materials split is a national estimate, not data for each home.
-- The land share includes developer profit and other costs, not only land.
+- Resale: the part left after build cost is land and location. It includes no developer profit, but it does include any error in the build cost. The build cost of a new house is more than an old house is worth, so the resale land share is, if anything, too low.
+- New build: developer profit and other development costs are standard appraisal assumptions, not data for each sale.
 - Unmatched addresses can make the sample less representative.
 - EPC floor area can be old or incorrect.
 - One London-wide build cost ignores differences between boroughs. This moves absolute land shares, but the ranking between boroughs is more robust.

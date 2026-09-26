@@ -7,14 +7,17 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import config
+from src.costs import split_price
 from src.lookup import (
     format_address, normalise_postcode, postcode_info, postcode_sector,
-    sales_at_postcode, sales_in_sector, split_price,
+    sales_at_postcode, sales_in_sector,
 )
 
 st.set_page_config(page_title="London house prices: land vs build cost", page_icon="🏠", layout="centered")
 
-COLOURS = {"labour": "#4C78A8", "materials": "#9ECAE9", "land": "#E45756"}
+COLOURS = {"labour": "#4C78A8", "materials": "#9ECAE9", "other": "#EECA3B",
+           "profit": "#B279A2", "land": "#E45756"}
+LAND_LABEL = {"resale": "Land and location", "new_build": "Land"}
 
 
 @st.cache_data
@@ -36,13 +39,18 @@ def gbp(x) -> str:
     return f"£{x:,.0f}"
 
 
-def split_chart(parts: dict) -> go.Figure:
-    """One horizontal stacked bar: labour + materials + land and profit = price."""
+def split_chart(parts: dict, mode: str) -> go.Figure:
+    """One horizontal stacked bar whose parts add up to the sale price."""
     bars = [
         ("Labour (estimate)", parts["labour_est"], COLOURS["labour"]),
         ("Materials and other build costs", parts["materials_est"], COLOURS["materials"]),
-        ("Land, profit and other costs", parts["land_and_profit"], COLOURS["land"]),
     ]
+    if mode == "new_build":
+        bars += [
+            ("Fees, finance, sales", parts["other_dev_costs"], COLOURS["other"]),
+            ("Developer profit", parts["developer_profit"], COLOURS["profit"]),
+        ]
+    bars.append((LAND_LABEL[mode], parts["land"], COLOURS["land"]))
     fig = go.Figure()
     for name, value, colour in bars:
         share = value / parts["price"]
@@ -60,11 +68,12 @@ def split_chart(parts: dict) -> go.Figure:
     return fig
 
 
-def borough_chart(summary: pd.DataFrame, highlight_code: str) -> go.Figure:
-    s = summary[summary["enough_sales"]].sort_values("median_land_share")
+def borough_chart(summary: pd.DataFrame, highlight_code: str, mode: str) -> go.Figure:
+    col = f"median_land_share_{mode}"
+    s = summary[summary["enough_sales"]].sort_values(col)
     colours = [COLOURS["land"] if c == highlight_code else "#CCCCCC" for c in s["borough_code"]]
     fig = go.Figure(go.Bar(
-        x=s["median_land_share"], y=s["borough"], orientation="h", marker_color=colours,
+        x=s[col], y=s["borough"], orientation="h", marker_color=colours,
         hovertemplate="%{y}: %{x:.0%}<extra></extra>",
     ))
     fig.update_layout(
@@ -73,16 +82,16 @@ def borough_chart(summary: pd.DataFrame, highlight_code: str) -> go.Figure:
     return fig
 
 
-def show_split(price, floor_area, cost_per_m2, heading):
-    parts = split_price(price, floor_area, cost_per_m2)
+def show_split(price, floor_area, cost_per_m2, heading, mode):
+    parts = split_price(price, floor_area, cost_per_m2, mode)
     st.subheader(heading)
     c1, c2, c3 = st.columns(3)
     c1.metric("Sale price", gbp(parts["price"]))
     c2.metric("Estimated build cost", gbp(parts["build_cost"]))
-    c3.metric("Land, profit and other", f"{parts['land_share']:.0%}")
-    st.plotly_chart(split_chart(parts), width="stretch", config={"displayModeBar": False})
+    c3.metric(f"{LAND_LABEL[mode]} share", f"{parts['land_share']:.0%}")
+    st.plotly_chart(split_chart(parts, mode), width="stretch", config={"displayModeBar": False})
     if parts["land_share"] < 0:
-        st.warning("The estimated build cost is higher than the price. The floor area or price may be wrong.")
+        st.warning("The estimated costs are higher than the price. The floor area or price may be wrong.")
 
 
 # --- Page ------------------------------------------------------------------
@@ -91,6 +100,11 @@ st.write(
     f"Enter a London postcode. We compare the sale price of houses there with what it would "
     f"cost to build them today (about **{gbp(config.BUILD_COST_PER_M2)} per m²**). "
     f"The rest is mostly the value of the land."
+)
+mode = st.radio(
+    "Type of sale", options=list(config.MODES), format_func=config.MODES.get, horizontal=True,
+    help="Resale: a homeowner sells, so there is no developer profit. New build: a developer also "
+         "pays fees, finance and sales costs, and takes a profit, before what is left for the land.",
 )
 
 sales = load_sales()
@@ -134,11 +148,15 @@ st.caption(f"{postcode} · {info['borough']}")
 exact = sales_at_postcode(sales, postcode, house) if house else pd.DataFrame()
 if len(exact):
     row = exact.iloc[0]
+    sold_new = row["old_new"] == "Y"
     show_split(
         row["price"], row["tfarea"], cost_per_m2,
-        f"{format_address(row.to_dict())} sold for {gbp(row['price'])} "
-        f"({row['date']:%B %Y}), {row['tfarea']:.0f} m²",
+        f"{format_address(row.to_dict())} sold {'new ' if sold_new else ''}for {gbp(row['price'])} "
+        f"({row['date']:%B %Y}), {row['tfarea']:.0f} m²", mode,
     )
+    if sold_new != (mode == "new_build"):
+        st.caption(f"This house was sold {'new' if sold_new else 'as a resale'}. "
+                   f"Switch the type of sale above to see its actual split.")
 else:
     if house:
         st.info(f"No house sale at {house}, {postcode} in {config.YEAR}. Showing nearby sales instead.")
@@ -150,6 +168,7 @@ else:
             area["price"].median(), area["tfarea"].median(), cost_per_m2,
             f"Typical house in {label}: {gbp(area['price'].median())}, "
             f"{area['tfarea'].median():.0f} m² ({len(area)} sale{'s' if len(area) != 1 else ''} in {config.YEAR})",
+            mode,
         )
     else:
         st.info(f"No house sales near {postcode} in {config.YEAR}. See the borough figures below.")
@@ -159,7 +178,7 @@ with st.expander("Try your own numbers"):
     c1, c2 = st.columns(2)
     my_price = c1.number_input("Sale price (£)", min_value=10_000, value=600_000, step=10_000)
     my_area = c2.number_input("Floor area (m²)", min_value=20, value=100, step=5)
-    show_split(my_price, my_area, cost_per_m2, "Your house")
+    show_split(my_price, my_area, cost_per_m2, "Your house", mode)
 
 # 3. Nearby sales table.
 nearby = sales_in_sector(sales, postcode)
@@ -168,20 +187,22 @@ if len(nearby):
         t = nearby.assign(
             address=nearby.apply(lambda r: format_address(r.to_dict()), axis=1),
             build_cost=nearby["tfarea"] * cost_per_m2,
+            new_build=nearby["old_new"] == "Y",
+            land_share=split_price(nearby["price"], nearby["tfarea"], cost_per_m2, mode)["land_share"],
         )
-        t["land_share"] = 1 - t["build_cost"] / t["price"]
         st.dataframe(
-            t[["address", "postcode", "date", "price", "tfarea", "build_cost", "land_share"]]
+            t[["address", "postcode", "date", "new_build", "price", "tfarea", "build_cost", "land_share"]]
             .sort_values("date", ascending=False),
             hide_index=True, width="stretch",
             column_config={
                 "address": "Address", "postcode": "Postcode",
                 "date": st.column_config.DateColumn("Sold", format="D MMM YYYY"),
+                "new_build": st.column_config.CheckboxColumn("Sold new"),
                 "price": st.column_config.NumberColumn("Price", format="£%d"),
                 "tfarea": st.column_config.NumberColumn("Floor area (m²)", format="%d"),
                 "build_cost": st.column_config.NumberColumn("Build cost", format="£%d"),
                 "land_share": st.column_config.ProgressColumn(
-                    "Land share", min_value=0, max_value=1, format="percent"),
+                    f"{LAND_LABEL[mode]} share", min_value=0, max_value=1, format="percent"),
             },
         )
 st.map(pd.DataFrame({"lat": [info["lat"]], "lon": [info["lon"]]}), zoom=13, size=60)
@@ -192,17 +213,21 @@ if len(b) and b["enough_sales"].iloc[0]:
     b = b.iloc[0]
     st.subheader(f"{b['borough']} compared with other boroughs")
     st.write(
-        f"Median house price **{gbp(b['median_price'])}**, median land share "
-        f"**{b['median_land_share']:.0%}** ({int(b['sales']):,} sales, "
-        f"build cost {gbp(config.BUILD_COST_PER_M2)}/m²)."
+        f"Median house price **{gbp(b['median_price'])}**, median {LAND_LABEL[mode].lower()} share "
+        f"**{b[f'median_land_share_{mode}']:.0%}** ({config.MODES[mode].lower()}, "
+        f"{int(b['sales']):,} sales, build cost {gbp(config.BUILD_COST_PER_M2)}/m²)."
     )
-    st.plotly_chart(borough_chart(summary, info["borough_code"]), width="stretch",
+    st.plotly_chart(borough_chart(summary, info["borough_code"], mode), width="stretch",
                     config={"displayModeBar": False})
 
 st.divider()
 st.caption(
-    f"**Method.** Build cost = EPC floor area × build cost per m². Land share = (price − build cost) ÷ price. "
-    f"It includes land, developer profit and other costs, not only land. The labour and materials split "
+    f"**Method.** Build cost = EPC floor area × build cost per m². "
+    f"Resale: land and location = price − build cost; a homeowner seller makes no developer profit. "
+    f"New build: land = price − build cost − fees, finance and sales "
+    f"({config.OTHER_DEV_COSTS_SHARE_OF_BUILD:.0%} of build cost, provisional) − developer profit "
+    f"({config.DEVELOPER_PROFIT_SHARE_OF_PRICE:.1%} of price, planning guidance: 15–20%). "
+    f"The labour and materials split "
     f"is a national estimate ({config.LABOUR_SHARE:.0%} labour), not data for each house. Houses only, "
     f"standard sales, {config.YEAR}. EPC floor area can be old or incorrect.  \n"
     "**Sources.** HM Land Registry Price Paid Data; House Price per Square Metre (Price Paid × EPC, "
