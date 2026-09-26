@@ -4,6 +4,8 @@ import pandas as pd
 import plotly.graph_objects as go
 
 import config
+from src.costs import split_price
+from src.ui import LAND_LABEL
 
 # Points that share a postcode centroid are spread on a small circle so each can be hovered.
 SPREAD_RADIUS_DEG = 0.00009  # about 10 m north-south
@@ -36,18 +38,22 @@ def sale_address(row) -> str:
     return ", ".join(p for p in (clean(row.get("saon")), house) if p)
 
 
-def sales_hover(df: pd.DataFrame, cost_per_m2: float) -> pd.Series:
-    build = df["tfarea"] * cost_per_m2
-    gap = df["price"] - build
-    share = gap / df["price"]
+def sales_hover(df: pd.DataFrame, cost_per_m2: float, mode: str) -> pd.Series:
+    parts = split_price(df["price"], df["tfarea"], cost_per_m2, mode)
+    label = LAND_LABEL[mode]
     lines = (
         "<b>" + df.apply(sale_address, axis=1) + "</b>, " + df["postcode"]
         + "<br>Sold " + df["date"].dt.strftime("%b %Y") + " for <b>" + df["price"].map(gbp) + "</b>"
         + "<br>Floor area " + df["tfarea"].round().astype(int).astype(str) + " m²"
-        + "<br>Build cost (estimate): " + build.map(gbp)
-        + "<br>Gap (land, profit, other): <b>" + gap.map(gbp) + "</b>"
-        + "<br>Land share: <b>" + (share * 100).round().astype(int).astype(str) + "%</b>"
+        + "<br>Build cost (estimate): " + parts["build_cost"].map(gbp)
     )
+    if mode == "new_build":
+        lines = (lines
+                 + "<br>Fees, marketing and legal: " + parts["other_dev_costs"].map(gbp)
+                 + "<br>Developer profit: " + parts["developer_profit"].map(gbp))
+    lines = (lines
+             + f"<br>{label}: <b>" + parts["land"].map(gbp) + "</b>"
+             + f"<br>{label} share: <b>" + (parts["land_share"] * 100).round().astype(int).astype(str) + "%</b>")
     offshore = np.where(
         df["offshore_company_title"],
         "<br><span style='color:" + OCOD_RED + "'>Title held by overseas company: "
@@ -79,10 +85,10 @@ def aggregate_ocod(ocod: pd.DataFrame, examples: int = 3) -> pd.DataFrame:
     return ocod.groupby("postcode").apply(summarise, include_groups=False).reset_index()
 
 
-def street_map(sales: pd.DataFrame, ocod_by_postcode, cost_per_m2: float) -> go.Figure:
+def street_map(sales: pd.DataFrame, ocod_by_postcode, cost_per_m2: float, mode: str) -> go.Figure:
     """Blue points: house sales coloured by land share. Red: overseas-company titles per postcode."""
     s = spread_points(sales.dropna(subset=["lat", "lon"]))
-    share = 1 - s["tfarea"] * cost_per_m2 / s["price"]
+    share = split_price(s["price"], s["tfarea"], cost_per_m2, mode)["land_share"]
     fig = go.Figure()
 
     if ocod_by_postcode is not None and len(ocod_by_postcode):
@@ -95,9 +101,9 @@ def street_map(sales: pd.DataFrame, ocod_by_postcode, cost_per_m2: float) -> go.
 
     fig.add_trace(go.Scattermap(
         lat=s["lat_plot"], lon=s["lon_plot"], mode="markers", name=f"House sales {config.YEAR}",
-        marker=dict(size=11, color=share, colorscale=SALES_SCALE, cmin=0.5, cmax=1.0,
-                    colorbar=dict(title="Land share", tickformat=".0%", x=1.0, len=0.6)),
-        text=sales_hover(s, cost_per_m2), hovertemplate="%{text}<extra></extra>",
+        marker=dict(size=11, color=share, colorscale=SALES_SCALE, cmin=0.4, cmax=1.0,
+                    colorbar=dict(title=f"{LAND_LABEL[mode]}<br>share", tickformat=".0%", x=1.0, len=0.6)),
+        text=sales_hover(s, cost_per_m2, mode), hovertemplate="%{text}<extra></extra>",
     ))
 
     matched = s[s["offshore_company_title"]]
@@ -105,7 +111,7 @@ def street_map(sales: pd.DataFrame, ocod_by_postcode, cost_per_m2: float) -> go.
         fig.add_trace(go.Scattermap(
             lat=matched["lat_plot"], lon=matched["lon_plot"], mode="markers",
             name="House sale, title now held by overseas company",
-            marker=dict(size=17, color=OCOD_RED), text=sales_hover(matched, cost_per_m2),
+            marker=dict(size=17, color=OCOD_RED), text=sales_hover(matched, cost_per_m2, mode),
             hovertemplate="%{text}<extra></extra>",
         ))
 

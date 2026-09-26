@@ -88,20 +88,6 @@ def sales_in_sector(df: pd.DataFrame, postcode: str) -> pd.DataFrame:
     return df[df["postcode"].str.startswith(postcode_sector(postcode))]
 
 
-def split_price(price: float, floor_area: float, cost_per_m2: float) -> dict:
-    """Split a sale price into build cost (labour, materials) and land plus profit."""
-    build = floor_area * cost_per_m2
-    labour = build * config.LABOUR_SHARE
-    return {
-        "price": price,
-        "build_cost": build,
-        "labour_est": labour,
-        "materials_est": build - labour,
-        "land_and_profit": price - build,
-        "land_share": (price - build) / price if price else float("nan"),
-    }
-
-
 def format_address(row) -> str:
     parts = [row.get("saon"), row.get("paon"), row.get("street")]
     return ", ".join(str(p).title() for p in parts if pd.notna(p) and str(p).strip())
