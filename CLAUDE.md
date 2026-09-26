@@ -1,4 +1,4 @@
-# CLAUDE.md: London Land Value Project
+# CLAUDE.md: PropertyGo (London Land Value Project)
 
 ## Context
 
