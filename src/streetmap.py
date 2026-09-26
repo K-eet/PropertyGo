@@ -17,6 +17,12 @@ def gbp(x) -> str:
     return f"£{x:,.0f}" if pd.notna(x) else "n/a"
 
 
+def country_name(s: pd.Series) -> pd.Series:
+    """'ISLE OF MAN' -> 'Isle of Man' (str.title() gives 'Isle Of Man')."""
+    return (s.fillna("Unknown").str.title()
+            .str.replace(r"\b(Of|And|The)\b", lambda m: m.group(1).lower(), regex=True))
+
+
 def spread_points(df: pd.DataFrame) -> pd.DataFrame:
     """Offset rows that share a lat/lon so they sit on a small circle round the centroid."""
     df = df.copy()
@@ -57,7 +63,7 @@ def sales_hover(df: pd.DataFrame, cost_per_m2: float, mode: str) -> pd.Series:
     offshore = np.where(
         df["offshore_company_title"],
         "<br><span style='color:" + OCOD_RED + "'>Title held by overseas company: "
-        + df["proprietor"].fillna("").str.title() + " (" + df["country_incorporated"].fillna("").str.title() + ")</span>",
+        + df["proprietor"].fillna("").str.title() + " (" + country_name(df["country_incorporated"]) + ")</span>",
         "",
     )
     return lines + offshore
@@ -68,7 +74,7 @@ def aggregate_ocod(ocod: pd.DataFrame, examples: int = 3) -> pd.DataFrame:
     ocod = ocod.dropna(subset=["lat", "lon"])
 
     def summarise(g):
-        countries = g["country_incorporated"].fillna("Unknown").str.title().value_counts()
+        countries = country_name(g["country_incorporated"]).value_counts()
         top = ", ".join(f"{c} ({n})" for c, n in countries.head(3).items())
         ex = "<br>".join(
             "· " + g["property_address"].str.title().str.slice(0, 60).head(examples)

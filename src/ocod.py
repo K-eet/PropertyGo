@@ -98,18 +98,26 @@ def paon_token(paon) -> str:
 
 
 def match_titles_to_sales(sales: pd.DataFrame, ocod: pd.DataFrame) -> pd.DataFrame:
-    """Flag house sales whose postcode and house number/name match a single-address OCOD title.
+    """Flag house sales whose postcode, house number/name and street match a single-address OCOD title.
 
-    Flat titles and multiple-address titles are not matched to house sales.
+    Flat titles and multiple-address titles are not matched to house sales. The street check stops
+    '19 Francis House, Coleridge Gardens' matching '19 Burnaby Street' in the same postcode.
     """
     single = ocod[~ocod["multiple_address"] & ~ocod["is_flat"]]
     keys = single.assign(token=single["property_address"].map(house_tokens)).explode("token")
     keys = keys.dropna(subset=["token"])[
-        ["postcode", "token", "title_number", "proprietor", "country_incorporated"]
-    ].drop_duplicates(["postcode", "token"])
+        ["postcode", "token", "property_address", "title_number", "proprietor", "country_incorporated"]
+    ]
 
     s = sales.assign(token=sales["paon"].map(paon_token))
-    out = s.merge(keys, on=["postcode", "token"], how="left").drop(columns="token")
+    cand = s[["transaction_id", "postcode", "token", "street"]].merge(keys, on=["postcode", "token"])
+    ocod_addr = cand["property_address"].map(normalise_address_part)
+    street = cand["street"].map(normalise_address_part)
+    same_street = [st != "" and st in a for st, a in zip(street, ocod_addr)]
+    cand = cand[same_street].drop_duplicates("transaction_id")[
+        ["transaction_id", "title_number", "proprietor", "country_incorporated"]]
+
+    out = s.drop(columns="token").merge(cand, on="transaction_id", how="left")
     out["offshore_company_title"] = out["title_number"].notna()
 
     per_postcode = ocod.groupby("postcode").size().rename("ocod_titles_in_postcode")
@@ -149,7 +157,7 @@ def main():
 
         sales = match_titles_to_sales(sales, ocod)
         n = sales["offshore_company_title"].sum()
-        print(f"House sales matched to an OCOD title (postcode + house number/name): "
+        print(f"House sales matched to an OCOD title (postcode + house number/name + street): "
               f"{n:,} of {len(sales):,} ({n / len(sales):.1%})")
         in_pc = (sales["ocod_titles_in_postcode"] > 0).mean()
         print(f"House sales in a postcode with at least one OCOD title: {in_pc:.1%}")
