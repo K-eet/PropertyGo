@@ -59,6 +59,17 @@ Price = build cost + professional fees + marketing and legal + developer profit 
 | 5.4 | Map location | Postcode centroid [S10] | Neither Price Paid nor OCOD has coordinates. Points that share a postcode are spread about 10 m apart so each can be hovered | Team choice |
 | 5.5 | OCOD to sale match | Same normalised postcode and same house number or name (PAON) | Exact match, no fuzzy matching. Flat titles and titles with `Multiple Address Indicator` = Y are not matched to house sales | Team choice |
 
+## 6. Detailed London map (neighbourhoods and individual sales)
+
+| # | Assumption | Value | Source / reason | Status |
+|---|---|---|---|---|
+| 6.1 | Location of each sale | Postcode centre [S10] | Price Paid has no coordinates. All 32,486 sales located (100%) | Sourced |
+| 6.2 | Neighbourhood | MSOA 2011 (983 in London), by spatial join of the postcode centre [S3] | 99.9% of sales fall in an MSOA inside the same borough as Price Paid says | Sourced |
+| 6.3 | Minimum sales per neighbourhood (`MIN_SALES_PER_MSOA`) | 10 | 844 of 983 MSOAs qualify; median 30 sales per MSOA. Many inner London MSOAs are mostly flats and fall below | Team choice |
+| 6.4 | Colour stretch | Neighbourhoods: 2nd to 98th percentile. Individual sales: 5th to 95th percentile | Stops a few extreme values from washing out the colours; the full 0–100% scale is one click away | Team choice |
+
+Neighbourhood range (resale, £1,900/m²): 54% (Bexley 004) to 92% (Kensington and Chelsea 014); middle 70%. 15% of individual sales have a land and location share above 80%.
+
 ## Results (London, 2023, build cost £1,900/m²)
 
 | | Sales | Median price | Median land share | At £1,520/m² | At £2,500/m² |

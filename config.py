@@ -71,6 +71,12 @@ BOROUGH_SHP = (
     RAW / "london_boundaries" / "statistical-gis-boundaries-london" / "ESRI"
     / "London_Borough_Excluding_MHW.shp"
 )
+MSOA_SHP = (
+    RAW / "london_boundaries" / "statistical-gis-boundaries-london" / "ESRI"
+    / "MSOA_2011_London_gen_MHW.shp"
+)
+# Neighbourhoods (MSOAs) with fewer house sales than this are shown grey on the detailed map.
+MIN_SALES_PER_MSOA = 10
 LAND_VALUES_FILE = RAW / "land_value_estimates_2023.xlsx"
 # House price per m² (Price Paid x EPC, pre-linked), one CSV per local authority.
 HPM_DIR = RAW / "hpm" / "hpm_la_2024" / "hpm_la_2024"

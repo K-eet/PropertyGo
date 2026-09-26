@@ -31,6 +31,35 @@ def load_sales() -> pd.DataFrame:
     return _load_sales(file_version(SALES_FILE))
 
 
+LOCATIONS_FILE = config.PROCESSED / f"sale_locations_{config.YEAR}.parquet"
+
+
+@st.cache_data
+def _load_located_sales(sales_version, locations_version):
+    """Sales with lat/lon, MSOA and a display address. None if `python -m src.locate` has not run."""
+    if locations_version is None:
+        return None
+    from src.streetmap import sale_address, spread_points
+    loc = pd.read_parquet(LOCATIONS_FILE, columns=["transaction_id", "lat", "lon", "msoa_code", "msoa_name"])
+    d = _load_sales(sales_version).merge(loc, on="transaction_id", how="inner")
+    d = spread_points(d.dropna(subset=["lat"]))
+    d["address"] = d.apply(sale_address, axis=1) + ", " + d["postcode"]
+    return d.reset_index(drop=True)
+
+
+def load_located_sales():
+    return _load_located_sales(file_version(SALES_FILE), file_version(LOCATIONS_FILE))
+
+
+@st.cache_data
+def load_msoa_geojson() -> dict:
+    """MSOA outlines in WGS84, simplified, for the neighbourhood map."""
+    from src.locate import load_msoas
+    gdf = load_msoas().to_crs(4326)
+    gdf["geometry"] = gdf.geometry.simplify(0.0002)
+    return gdf.__geo_interface__
+
+
 def clockwise(geom):
     """Plotly's geo maps (d3) need clockwise outer rings, or a shape fills the whole globe."""
     if isinstance(geom, Polygon):
