@@ -14,9 +14,21 @@ def gbp(x) -> str:
     return f"£{x:,.0f}"
 
 
+SALES_FILE = config.PROCESSED / f"land_share_london_houses_{config.YEAR}.parquet"
+
+
+def file_version(path):
+    """Modification time, so cached data reloads after a pipeline step is rerun."""
+    return path.stat().st_mtime if path.exists() else None
+
+
 @st.cache_data
+def _load_sales(version) -> pd.DataFrame:
+    return pd.read_parquet(SALES_FILE)
+
+
 def load_sales() -> pd.DataFrame:
-    return pd.read_parquet(config.PROCESSED / f"land_share_london_houses_{config.YEAR}.parquet")
+    return _load_sales(file_version(SALES_FILE))
 
 
 def clockwise(geom):

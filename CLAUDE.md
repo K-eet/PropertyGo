@@ -53,6 +53,7 @@ Do not start item 3 until items 1 and 2 are complete.
 
 - **MHCLG Land Value Estimates for Policy Appraisal 2023:** residential land £/ha per borough. Downloaded: `data/raw/land_value_estimates_2023.xlsx`. Use to check the borough ranking only.
 - **Forest MCP:** open UK data (login can expire: run `/mcp` to sign in again). No construction cost or appraisal data, one value per parliamentary constituency (PCON24), not per borough or per sale. It cannot replace Price Paid + EPC. Useful for context: `average_house_price_gbp` (ONS UK HPI, to cross-check our medians), `parliament_house_price_to_earnings_ratio`, `homes_completed_annual`, `dwelling_flat_pct`, `bedrooms_*_pct` (fallback proxy for floor area if matching fails).
+- **HM Land Registry OCOD (overseas companies that own property):** https://use-land-property-data.service.gov.uk/datasets/ocod. Free account needed, so download by hand. Unzip the full file into `data/raw/ocod/` (`OCOD_FULL_*.csv`), then run `python -m src.ocod`. Overseas companies only (no individuals, UK companies or trusts); today's owners, not 2023 buyers.
 - **Postcode lookup (demo only):** postcodes.io API, or ONS Postcode Directory if offline.
 
 ### Team list: other datasets (not used in the main result; use for extra slides only if time permits)
@@ -109,7 +110,7 @@ data/processed/  cleaned and matched files
 notebooks/       exploration only
 src/             reusable functions
 views/           Streamlit pages (app.py is the router)
-outputs/         charts and tables for the presentation
+outputs/         charts and tables for the presentation; pitch.md = pitch script and demo steps
 .venv/           Python environment (pip install -r requirements.txt)
 config.py
 ASSUMPTIONS.md
@@ -122,6 +123,7 @@ ASSUMPTIONS.md
 - Streamlit for the demo: `.venv/bin/streamlit run app.py` (http://localhost:8501). Two pages:
   - `views/lookup.py` "Look up a house": postcode or address, price split bar, nearby sales. Lookup logic in `src/lookup.py`, postcodes via postcodes.io.
   - `views/borough_map.py` "Borough map": interactive Plotly map, **green = lower share, red = higher**. Stretched to the lowest and highest borough by default; toggle for a fixed 0–100% scale. In new-build mode, colour by "land only" or "land and developer profit". Marks the last looked-up postcode.
+  - `views/street_map.py` "Kensington and Chelsea street map": every 2023 house sale as a point (postcode centroid), **blue shades by land share** (red is kept for ownership), with overseas-company titles (OCOD) as red circles. Borough set by `TARGET_BOROUGH_CODE` in `config.py`. Build its data with `python -m src.ocod` (`src/ocod.py`, `src/streetmap.py`); without the OCOD file it builds the sales layer only.
   - `app.py` is the router. The sidebar controls (type of sale, build cost per m²) live there so they keep their values across pages. Shared helpers in `src/ui.py`.
   - Needs internet: postcodes.io and Plotly's map base file (CDN).
   - Plotly geo maps need clockwise polygon rings (`src/ui.py`, `clockwise`), or boroughs do not draw.
