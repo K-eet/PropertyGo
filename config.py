@@ -78,6 +78,15 @@ MSOA_SHP = (
 # Neighbourhoods (MSOAs) with fewer house sales than this are shown grey on the detailed map.
 MIN_SALES_PER_MSOA = 10
 LAND_VALUES_FILE = RAW / "land_value_estimates_2023.xlsx"
+
+# --- "Why?" sections ---------------------------------------------------------
+# Centre of London for distances: Charing Cross (the traditional centre point for London distances).
+CENTRE_LAT_LON = (51.5074, -0.1278)
+DISTANCE_BANDS_KM = [0, 5, 10, 15, 20, 40]
+# ONS, House price to residence-based earnings ratio, Table 5b: median gross annual earnings of
+# full-time employees living in each local authority (ASHE). Year matches YEAR.
+EARNINGS_FILE = RAW / "ons_affordability_residence.xlsx"
+EARNINGS_SHEET = "5b"
 # House price per m² (Price Paid x EPC, pre-linked), one CSV per local authority.
 HPM_DIR = RAW / "hpm" / "hpm_la_2024" / "hpm_la_2024"
 # Overseas companies that own property (Land Registry OCOD). Unzip the full file here;

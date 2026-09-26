@@ -70,6 +70,21 @@ Price = build cost + professional fees + marketing and legal + developer profit 
 
 Neighbourhood range (resale, £1,900/m²): 54% (Bexley 004) to 92% (Kensington and Chelsea 014); middle 70%. 15% of individual sales have a land and location share above 80%.
 
+## 7. "Why?" sections
+
+| # | Assumption | Value | Source / reason | Status |
+|---|---|---|---|---|
+| 7.1 | Centre of London (`CENTRE_LAT_LON`) | Charing Cross, 51.5074, −0.1278 | The traditional centre point for distances from London | Team choice |
+| 7.2 | Distance | Straight line from postcode centre [S10] to Charing Cross, bands 0–5, 5–10, 10–15, 15–20, 20+ km | A simple stand-in for access to jobs and transport; not travel time | Team choice |
+| 7.3 | "Same house" comparison | Default: terraced houses of 90–110 m² (the app lets you change type and size) | Fixing type and size removes "central houses are bigger" as an explanation | Team choice |
+| 7.4 | Earnings (`EARNINGS_FILE`) | Median gross annual pay of full-time employees **living** in the borough, 2023 | ONS, House price to residence-based earnings ratio, Table 5b [S11] (ASHE). City of London is suppressed | Sourced |
+| 7.5 | Years of earnings | Median price ÷ median pay; median land per sale ÷ median pay | Before tax and spending; houses only, so higher than the ONS all-homes ratios | Method |
+
+Results (resale, £1,900/m²):
+- Terraced houses of 90–110 m²: build cost £184,000–£190,000 in every distance band; median price £997,500 within 5 km of Charing Cross and £465,000 beyond 20 km (2.1×). Land and location share 82% to 61%.
+- Across 844 neighbourhoods, rank correlation between distance and land share: **−0.71**.
+- Land alone for the median house: **58 years** of local full-time pay in Kensington and Chelsea (whole house 65), **7 years** in Bexley, Barking and Dagenham and Havering (whole house 11–12). Middle borough: 12 years.
+
 ## Results (London, 2023, build cost £1,900/m²)
 
 | | Sales | Median price | Median land share | At £1,520/m² | At £2,500/m² |
@@ -133,4 +148,5 @@ Matching was done by the authors of [S2]; we join to Price Paid on transaction I
 | S7 | ONS, UK Input-Output Analytical Tables, detailed, 2023 (product by product). https://www.ons.gov.uk/economy/nationalaccounts/supplyandusetables/datasets/ukinputoutputanalyticaltablesdetailed. Local copy: `data/raw/iot2023product.xlsx` | Labour share of construction |
 | S8 | MHCLG, Planning Practice Guidance: Viability, para 018. https://www.gov.uk/guidance/viability | Developer profit 15–20% of GDV |
 | S9 | HM Land Registry, Overseas companies that own property in England and Wales (OCOD), monthly full file. https://use-land-property-data.service.gov.uk/datasets/ocod | Overseas-company titles on the street map |
+| S11 | ONS, Ratio of house price to residence-based earnings (lower quartile and median), Table 5b. https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/ratioofhousepricetoresidencebasedearningslowerquartileandmedian. Local copy: `data/raw/ons_affordability_residence.xlsx` | Median earnings per borough |
 | S10 | postcodes.io (ONS Postcode Directory). https://postcodes.io | Postcode centroids for the street map |

@@ -13,6 +13,8 @@ st.set_page_config(page_title="London house prices: land vs build cost", page_ic
 page = st.navigation([
     st.Page("views/lookup.py", title="Look up a house", icon="🔎", default=True),
     st.Page("views/borough_map.py", title="Borough map", icon="🗺️"),
+    st.Page("views/why_location.py", title="Why? Location", icon="🧱"),
+    st.Page("views/why_earnings.py", title="Why it matters: years of pay", icon="⏳"),
     st.Page("views/street_map.py", title=f"{config.TARGET_BOROUGH_NAME} street map", icon="📍"),
 ])
 

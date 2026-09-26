@@ -54,6 +54,7 @@ Do not start item 3 until items 1 and 2 are complete.
 - **MHCLG Land Value Estimates for Policy Appraisal 2023:** residential land £/ha per borough. Downloaded: `data/raw/land_value_estimates_2023.xlsx`. Use to check the borough ranking only.
 - **Forest MCP:** open UK data (login can expire: run `/mcp` to sign in again). No construction cost or appraisal data, one value per parliamentary constituency (PCON24), not per borough or per sale. It cannot replace Price Paid + EPC. Useful for context: `average_house_price_gbp` (ONS UK HPI, to cross-check our medians), `parliament_house_price_to_earnings_ratio`, `homes_completed_annual`, `dwelling_flat_pct`, `bedrooms_*_pct` (fallback proxy for floor area if matching fails).
 - **HM Land Registry OCOD (overseas companies that own property):** https://use-land-property-data.service.gov.uk/datasets/ocod. Free account needed, so download by hand. Unzip the full file into `data/raw/ocod/` (`OCOD_FULL_*.csv`), then run `python -m src.ocod`. Overseas companies only (no individuals, UK companies or trusts); today's owners, not 2023 buyers.
+- **ONS earnings by borough:** house price to residence-based earnings workbook, Table 5b (median full-time pay of residents). Downloaded: `data/raw/ons_affordability_residence.xlsx`.
 - **Postcode lookup (demo only):** postcodes.io API, or ONS Postcode Directory if offline.
 
 ### Team list: other datasets (not used in the main result; use for extra slides only if time permits)
@@ -123,6 +124,9 @@ ASSUMPTIONS.md
 - Streamlit for the demo: `.venv/bin/streamlit run app.py` (http://localhost:8501). Two pages:
   - `views/lookup.py` "Look up a house": postcode or address, price split bar, nearby sales. Lookup logic in `src/lookup.py`, postcodes via postcodes.io.
   - `views/borough_map.py` "Borough map": interactive Plotly map, **green = lower share, red = higher**, at three levels of detail: **Borough** (33), **Neighbourhood** (983 MSOAs, grey below `MIN_SALES_PER_MSOA` = 10 sales) and **Individual sales** (every sale at its postcode centre; zooms to the last looked-up postcode). The two detailed levels need `python -m src.locate` once (`src/locate.py`: postcodes.io bulk geocoding, cached in `data/processed/postcode_centroids.parquet`, then spatial join to MSOA 2011). Colours stretched to this map's range by default; toggle for a fixed 0–100% scale. In new-build mode, colour by "land only" or "land and developer profit". Marks the last looked-up postcode.
+  - `views/why_location.py` "Why? Location": the same house type and size costs the same to build everywhere but sells for 2× near the centre; plus a neighbourhood scatter of land share against distance from Charing Cross.
+  - `views/why_earnings.py` "Why it matters: years of pay": median house price and its land part, in years of median local full-time pay (ONS Table 5b), per borough.
+  - Both use `src/why.py`; `python -m src.why` writes `outputs/why_location_2023.png`, `outputs/why_years_of_earnings_2023.png` and their CSVs for the slides.
   - `views/street_map.py` "Kensington and Chelsea street map": every 2023 house sale as a point (postcode centroid), **blue shades by land share** (red is kept for ownership), with overseas-company titles (OCOD) as red circles. Borough set by `TARGET_BOROUGH_CODE` in `config.py`. Build its data with `python -m src.ocod` (`src/ocod.py`, `src/streetmap.py`); without the OCOD file it builds the sales layer only.
   - `app.py` is the router. The sidebar controls (type of sale, build cost per m²) live there so they keep their values across pages. Shared helpers in `src/ui.py`.
   - Needs internet: postcodes.io and Plotly's map base file (CDN).
@@ -151,6 +155,8 @@ Do not add other frameworks.
 
 - London median land share: **70% as a resale, 47% as a new build**.
 - Resale by borough: 62% (Barking and Dagenham) to 90% (Kensington and Chelsea). At £2,500/m²: 49% to 87%.
+- Why location: the same terraced house (90–110 m²) costs about £190k to build everywhere but sells for £997,500 within 5 km of Charing Cross and £465,000 beyond 20 km. Neighbourhood land share vs distance: ρ = −0.71.
+- Why it matters: the land alone under the median house costs 58 years of local full-time pay in Kensington and Chelsea, 7 years in Bexley.
 - Match rate 95.8%. Rank agreement with MHCLG land values: ρ = 0.63–0.70.
 - One sentence: "Even in London's cheapest borough, most of a house's price is land, not bricks: about 62% on a resale, and still 37% after a developer's costs and profit."
 
