@@ -31,7 +31,7 @@ cost_per_m2 = st.session_state["cost_per_m2"]
 name = config.TARGET_BOROUGH_NAME
 label = LAND_LABEL[mode]
 
-st.title(f"Walk {name}: land, not bricks")
+st.title(f"{name}")
 if file_version(SALES_FILE) is None:
     st.error("Street map data not built yet. Run `python -m src.ocod`.")
     st.stop()

@@ -19,7 +19,7 @@ mode = st.session_state["mode"]
 cost_per_m2 = st.session_state["cost_per_m2"]
 label = LAND_LABEL[mode]
 
-st.title("Why? Location: same bricks, different price")
+st.title("Why? Location.")
 located = load_located_sales()
 if located is None:
     st.error("Run `python -m src.locate` once to give every sale a location.")

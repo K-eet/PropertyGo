@@ -16,7 +16,7 @@ mode = st.session_state["mode"]
 cost_per_m2 = st.session_state["cost_per_m2"]
 label = LAND_LABEL[mode]
 
-st.title("Why it matters: years of pay for the land alone")
+st.title("Why it matters: Most of your Mortgage is going to the land, not your house")
 st.write(
     f"How many years of the **median full-time salary of people living in each borough** would it take "
     f"to pay for the median house? And how much of that is just the {label.lower()}? "
