@@ -47,6 +47,25 @@ def borough_summary(df: pd.DataFrame) -> pd.DataFrame:
     return summary.sort_values("median_land_share_resale", ascending=False)
 
 
+def borough_shares(df: pd.DataFrame, cost_per_m2: float, mode: str,
+                   include_profit: bool = False) -> pd.DataFrame:
+    """Median share per borough at any build cost, for the interactive map.
+
+    share = land ÷ price, or (land + developer profit) ÷ price if include_profit.
+    """
+    parts = split_price(df["price"], df["tfarea"], cost_per_m2, mode)
+    top = parts["land"] + (parts["developer_profit"] if include_profit else 0)
+    d = df.assign(share=top / df["price"], build_cost=parts["build_cost"])
+    out = d.groupby("borough_code").agg(
+        sales=("price", "size"),
+        median_price=("price", "median"),
+        median_build_cost=("build_cost", "median"),
+        median_share=("share", "median"),
+    ).reset_index()
+    out["enough_sales"] = out["sales"] >= config.MIN_SALES_PER_BOROUGH
+    return out
+
+
 def new_vs_resale(df: pd.DataFrame) -> pd.DataFrame:
     """London-wide: actual new-build sales (new-build method) vs actual resales (resale method)."""
     rows = []

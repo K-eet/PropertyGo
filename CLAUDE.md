@@ -108,6 +108,7 @@ data/raw/        original downloads, never edit
 data/processed/  cleaned and matched files
 notebooks/       exploration only
 src/             reusable functions
+views/           Streamlit pages (app.py is the router)
 outputs/         charts and tables for the presentation
 .venv/           Python environment (pip install -r requirements.txt)
 config.py
@@ -117,8 +118,13 @@ ASSUMPTIONS.md
 ## Stack
 
 - Python, pandas
-- geopandas and plotly (or matplotlib) for the map
-- Streamlit for the demo: `.venv/bin/streamlit run app.py` (http://localhost:8501). Lookup logic in `src/lookup.py`, postcodes via postcodes.io
+- geopandas and matplotlib for the static maps in `outputs/` (same green-to-red colours), Plotly for the interactive map
+- Streamlit for the demo: `.venv/bin/streamlit run app.py` (http://localhost:8501). Two pages:
+  - `views/lookup.py` "Look up a house": postcode or address, price split bar, nearby sales. Lookup logic in `src/lookup.py`, postcodes via postcodes.io.
+  - `views/borough_map.py` "Borough map": interactive Plotly map, **green = lower share, red = higher**. Stretched to the lowest and highest borough by default; toggle for a fixed 0–100% scale. In new-build mode, colour by "land only" or "land and developer profit". Marks the last looked-up postcode.
+  - `app.py` is the router. The sidebar controls (type of sale, build cost per m²) live there so they keep their values across pages. Shared helpers in `src/ui.py`.
+  - Needs internet: postcodes.io and Plotly's map base file (CDN).
+  - Plotly geo maps need clockwise polygon rings (`src/ui.py`, `clockwise`), or boroughs do not draw.
 
 Do not add other frameworks.
 

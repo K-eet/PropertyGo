@@ -8,7 +8,7 @@ import pandas as pd
 import config
 from src.boroughs import load_boundaries
 
-# Same colour scale on both maps so they can be compared side by side.
+# Same colour scale on both maps so they can be compared side by side. Green = low, red = high.
 VMIN, VMAX = 0.2, 0.9
 
 TITLES = {
@@ -36,7 +36,7 @@ def load_map_data(mode: str):
 def plot_land_share(gdf, mode: str, path):
     fig, ax = plt.subplots(figsize=(10, 8))
     gdf.plot(
-        column="value", ax=ax, cmap="YlOrRd", vmin=VMIN, vmax=VMAX, edgecolor="white",
+        column="value", ax=ax, cmap="RdYlGn_r", vmin=VMIN, vmax=VMAX, edgecolor="white",
         linewidth=0.6, legend=True, missing_kwds={"color": "lightgrey"},
         legend_kwds={"label": "Median land share of sale price", "shrink": 0.6,
                      "format": lambda x, _: f"{x:.0%}"},
