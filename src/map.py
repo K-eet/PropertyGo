@@ -18,9 +18,10 @@ TITLES = {
 NOTES = {
     "resale": "Land share = (price − build cost) ÷ price. A homeowner seller makes no developer "
               "profit, so the rest is land and location.",
-    "new_build": f"Land share = (price − build cost − other development costs "
-                 f"({config.OTHER_DEV_COSTS_SHARE_OF_BUILD:.0%} of build cost) − developer profit "
-                 f"({config.DEVELOPER_PROFIT_SHARE_OF_PRICE:.1%} of price)) ÷ price. "
+    "new_build": f"Land share = (price − build cost − professional fees "
+                 f"({config.PROFESSIONAL_FEES_SHARE_OF_BUILD:.0%} of build cost) − marketing and legal "
+                 f"({config.MARKETING_AND_LEGAL_SHARE_OF_PRICE:.2%} of price) − developer profit "
+                 f"({config.DEVELOPER_PROFIT_SHARE_OF_PRICE:.1%} of price)) ÷ price. Finance not included. "
                  "Applied to all sales at local prices.",
 }
 
@@ -50,10 +51,11 @@ def plot_land_share(gdf, mode: str, path):
     )
     ax.text(
         0, -0.04,
-        f"{NOTES[mode]} Build cost £{config.BUILD_COST_PER_M2:,}/m² of EPC floor area. "
+        f"{NOTES[mode]} Build cost £{config.BUILD_COST_PER_M2:,}/m² of EPC floor area (BCIS estate "
+        "housing, outer London, via Harrow and Croydon Local Plan Viability Assessments 2024). "
         "Grey: City of London (too few house sales).\n"
         "Sources: HM Land Registry Price Paid Data; EPC floor area via House Price per Square Metre "
-        "(London Datastore); GLA borough boundaries.",
+        "(London Datastore); GLA borough boundaries; PPG Viability. Full list: ASSUMPTIONS.md.",
         transform=ax.transAxes, fontsize=7, va="top", color="#555", wrap=True,
     )
     ax.set_axis_off()

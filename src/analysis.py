@@ -10,8 +10,8 @@ from src.costs import split_price
 
 
 def add_splits(df: pd.DataFrame) -> pd.DataFrame:
-    """Add the price split for both modes, plus the ±build cost sensitivity."""
-    low, high = config.BUILD_COST_SENSITIVITY
+    """Add the price split for both modes, plus the build cost sensitivity range."""
+    low, high = config.BUILD_COST_RANGE_PER_M2
     df["price_per_m2"] = df["price"] / df["tfarea"]
     for mode in config.MODES:
         parts = split_price(df["price"], df["tfarea"], mode=mode)
@@ -19,14 +19,15 @@ def add_splits(df: pd.DataFrame) -> pd.DataFrame:
         df["labour_cost_est"] = parts["labour_est"]
         df[f"land_{mode}"] = parts["land"]
         df[f"land_share_{mode}"] = parts["land_share"]
-        for tag, k in (("cost_minus_20pct", low), ("cost_plus_20pct", high)):
+        for tag, cost in (("low_cost", low), ("high_cost", high)):
             df[f"land_share_{mode}_{tag}"] = split_price(
-                df["price"], df["tfarea"], config.BUILD_COST_PER_M2 * k, mode)["land_share"]
+                df["price"], df["tfarea"], cost, mode)["land_share"]
     return df
 
 
 def borough_summary(df: pd.DataFrame) -> pd.DataFrame:
     """Medians per borough. Both methods are applied to every sale at local prices."""
+    low, high = config.BUILD_COST_RANGE_PER_M2
     aggs = dict(
         sales=("price", "size"),
         new_build_sales=("old_new", lambda s: (s == "Y").sum()),
@@ -37,8 +38,8 @@ def borough_summary(df: pd.DataFrame) -> pd.DataFrame:
     )
     for mode in config.MODES:
         aggs[f"median_land_share_{mode}"] = (f"land_share_{mode}", "median")
-        aggs[f"land_share_{mode}_if_cost_minus_20pct"] = (f"land_share_{mode}_cost_minus_20pct", "median")
-        aggs[f"land_share_{mode}_if_cost_plus_20pct"] = (f"land_share_{mode}_cost_plus_20pct", "median")
+        aggs[f"land_share_{mode}_at_{low}_per_m2"] = (f"land_share_{mode}_low_cost", "median")
+        aggs[f"land_share_{mode}_at_{high}_per_m2"] = (f"land_share_{mode}_high_cost", "median")
     summary = df.groupby("borough_code").agg(**aggs)
     names = load_boundaries().set_index("GSS_CODE")["NAME"]
     summary.insert(0, "borough", names.reindex(summary.index))

@@ -47,7 +47,7 @@ def split_chart(parts: dict, mode: str) -> go.Figure:
     ]
     if mode == "new_build":
         bars += [
-            ("Fees, finance, sales", parts["other_dev_costs"], COLOURS["other"]),
+            ("Fees, marketing and legal", parts["other_dev_costs"], COLOURS["other"]),
             ("Developer profit", parts["developer_profit"], COLOURS["profit"]),
         ]
     bars.append((LAND_LABEL[mode], parts["land"], COLOURS["land"]))
@@ -122,8 +122,10 @@ cost_per_m2 = st.sidebar.slider(
     help="Change this to see how the result depends on the build cost assumption.",
 )
 st.sidebar.caption(
-    f"Default {gbp(config.BUILD_COST_PER_M2)}/m² is provisional. "
-    f"Labour share of build cost: {config.LABOUR_SHARE:.0%} (national estimate)."
+    f"Default {gbp(config.BUILD_COST_PER_M2)}/m²: BCIS estate housing, outer London "
+    f"(Harrow and Croydon Local Plan Viability Assessments 2024). "
+    f"Labour share of build cost: {config.LABOUR_SHARE:.0%}, an estimate from ONS input-output "
+    f"tables 2023 (range {config.LABOUR_SHARE_RANGE[0]:.0%}–{config.LABOUR_SHARE_RANGE[1]:.0%})."
 )
 
 postcode = normalise_postcode(postcode_text)
@@ -224,13 +226,18 @@ st.divider()
 st.caption(
     f"**Method.** Build cost = EPC floor area × build cost per m². "
     f"Resale: land and location = price − build cost; a homeowner seller makes no developer profit. "
-    f"New build: land = price − build cost − fees, finance and sales "
-    f"({config.OTHER_DEV_COSTS_SHARE_OF_BUILD:.0%} of build cost, provisional) − developer profit "
-    f"({config.DEVELOPER_PROFIT_SHARE_OF_PRICE:.1%} of price, planning guidance: 15–20%). "
+    f"New build: land = price − build cost − professional fees "
+    f"({config.PROFESSIONAL_FEES_SHARE_OF_BUILD:.0%} of build cost) − marketing and legal "
+    f"({config.MARKETING_AND_LEGAL_SHARE_OF_PRICE:.2%} of price) − developer profit "
+    f"({config.DEVELOPER_PROFIT_SHARE_OF_PRICE:.1%} of price; planning guidance 15–20%). "
+    f"Finance is not included, so new-build land is slightly overstated. "
     f"The labour and materials split "
-    f"is a national estimate ({config.LABOUR_SHARE:.0%} labour), not data for each house. Houses only, "
+    f"is a national estimate ({config.LABOUR_SHARE:.0%} labour, ONS input-output tables 2023), not data "
+    f"for each house. Houses only, "
     f"standard sales, {config.YEAR}. EPC floor area can be old or incorrect.  \n"
     "**Sources.** HM Land Registry Price Paid Data; House Price per Square Metre (Price Paid × EPC, "
-    "London Datastore); postcodes.io; GLA borough boundaries. Contains HM Land Registry data © Crown "
+    "London Datastore); postcodes.io; GLA borough boundaries; build cost and appraisal assumptions from "
+    "BCIS via Harrow (Oct 2024) and Croydon (2024) Local Plan Viability Assessments; Planning Practice "
+    "Guidance: Viability. Contains HM Land Registry data © Crown "
     "copyright and database right. Full list in ASSUMPTIONS.md."
 )

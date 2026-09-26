@@ -24,21 +24,32 @@ HOUSE_TYPES = ["D", "S", "T"]
 PPD_CATEGORIES = ["A"]
 
 # --- Build cost ------------------------------------------------------------
-# PROVISIONAL: the team must confirm this value and its source in ASSUMPTIONS.md.
-BUILD_COST_PER_M2 = 2500  # GBP per m² of floor area, London, houses
+# GBP per m² of floor area, houses, including 10% external works. BCIS 810.1 "Estate housing
+# generally" rebased to outer London: Harrow LPVA Oct 2024 Table 4.13.1 (£1,711 + 10% = £1,882);
+# Croydon LPVA 2024 para 4.12 (£1,754 + 10% = £1,929). Both by BNP Paribas Real Estate.
+BUILD_COST_PER_M2 = 1900
 
-# Multipliers for the sensitivity check (low, high) on BUILD_COST_PER_M2.
-BUILD_COST_SENSITIVITY = (0.8, 1.2)
+# Sensitivity range (low, high) in GBP per m². Low = -20%. High = £2,500, a cautious figure
+# above central Croydon (£2,201) to allow for inner London and net-zero costs.
+BUILD_COST_RANGE_PER_M2 = (1520, 2500)
 
-# PROVISIONAL ESTIMATE: national labour share of build cost. Label as an estimate in outputs.
-LABOUR_SHARE = 0.45
+# ESTIMATE: labour share of build cost, derived from ONS Input-Output Analytical Tables 2023
+# (UK construction, all types). Employee pay only gives 22%; adding all self-employed income
+# and surplus gives 52%. We use 38%, about the middle. Label as an estimate in outputs.
+LABOUR_SHARE = 0.38
+LABOUR_SHARE_RANGE = (0.22, 0.52)
 
 # --- New-build appraisal (not used for resales: a homeowner seller makes no developer profit) ---
 # Developer profit as a share of sale price. PPG Viability para 018: 15-20% of gross
-# development value is a suitable return for plan-making. We use the midpoint.
+# development value is a suitable return. Harrow and Croydon LPVAs 2024 use 17.5%.
 DEVELOPER_PROFIT_SHARE_OF_PRICE = 0.175
-# PROVISIONAL: professional fees, finance, sales and marketing, as a share of build cost.
-OTHER_DEV_COSTS_SHARE_OF_BUILD = 0.15
+# Professional fees as a share of build cost. Harrow LPVA para 4.22, Croydon para 4.18: 10%.
+PROFESSIONAL_FEES_SHARE_OF_BUILD = 0.10
+# Marketing and agents 2.5% plus sales legal fees 0.25% of sale price. Harrow para 4.24,
+# Croydon para 4.20.
+MARKETING_AND_LEGAL_SHARE_OF_PRICE = 0.0275
+# Finance is not included: the studies give an interest rate (6.5-7%), not a share, and a
+# share needs a build period assumption. So new-build land is slightly overstated.
 
 # Calculation modes.
 MODES = {"resale": "Resale (existing house)", "new_build": "New build (developer appraisal)"}
