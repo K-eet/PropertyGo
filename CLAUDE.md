@@ -111,7 +111,7 @@ ASSUMPTIONS.md
 
 - Python, pandas
 - geopandas and plotly (or matplotlib) for the map
-- Streamlit for the demo, only if time permits
+- Streamlit for the demo: `.venv/bin/streamlit run app.py` (http://localhost:8501). Lookup logic in `src/lookup.py`, postcodes via postcodes.io
 
 Do not add other frameworks.
 
