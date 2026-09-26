@@ -5,15 +5,10 @@ import streamlit as st
 import config
 from src.costs import split_price
 from src.streetmap import aggregate_ocod, country_name, sale_address, street_map
-from src.ui import LAND_LABEL, gbp, method_caption
+from src.ui import LAND_LABEL, file_version, gbp, method_caption
 
 SALES_FILE = config.PROCESSED / f"kc_sales_{config.YEAR}.parquet"
 OCOD_FILE = config.PROCESSED / "kc_ocod.parquet"
-
-
-def file_version(path):
-    """Modification time, so cached data reloads after `python -m src.ocod` is rerun."""
-    return path.stat().st_mtime if path.exists() else None
 
 
 @st.cache_data
