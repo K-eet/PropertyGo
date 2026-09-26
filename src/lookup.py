@@ -50,6 +50,28 @@ def postcode_info(postcode: str):
     }
 
 
+def geocode_postcodes(postcodes, cache_path=config.PROCESSED / "postcode_centroids.parquet") -> pd.DataFrame:
+    """Postcode centroids (postcode, lat, lon) from postcodes.io bulk, cached on disk.
+
+    Postcodes that postcodes.io does not know (e.g. terminated) come back with no lat/lon.
+    """
+    wanted = sorted({p for p in postcodes if p})
+    cache = pd.read_parquet(cache_path) if cache_path.exists() else pd.DataFrame(columns=["postcode", "lat", "lon"])
+    todo = [p for p in wanted if p not in set(cache["postcode"])]
+    rows = []
+    for i in range(0, len(todo), config.POSTCODES_BULK_LIMIT):
+        batch = todo[i:i + config.POSTCODES_BULK_LIMIT]
+        r = requests.post(POSTCODES_API.rstrip("/"), json={"postcodes": batch}, timeout=30)
+        r.raise_for_status()
+        for item in r.json()["result"]:
+            res = item["result"] or {}
+            rows.append({"postcode": item["query"], "lat": res.get("latitude"), "lon": res.get("longitude")})
+    if rows:
+        cache = pd.concat([cache, pd.DataFrame(rows)], ignore_index=True)
+        cache.to_parquet(cache_path, index=False)
+    return cache[cache["postcode"].isin(wanted)].reset_index(drop=True)
+
+
 def sales_at_postcode(df: pd.DataFrame, postcode: str, house: str = "") -> pd.DataFrame:
     """Sales at a postcode. If house is given, match it to PAON or SAON."""
     hits = df[df["postcode"] == postcode]

@@ -18,6 +18,11 @@ Each assumption lists its value, its source, and its status. Values live in `con
 | 10 | Floor area source | EPC total floor area (`tfarea`) | House Price per Square Metre dataset, London Datastore (Price Paid x EPC, pre-linked by the dataset authors) | Confirmed |
 | 11 | Floor area sanity limits | 30 to 1,000 m² | Team choice; removes 16 records | Confirmed |
 | 12 | Minimum sales per borough on the map | 30 | Team choice. Only City of London falls below (1 house sale) | Confirmed |
+| 13 | Street-level demo borough (`TARGET_BOROUGH_CODE`) | Kensington and Chelsea, `E09000020` | Highest median land share of the 32 boroughs with enough sales (87%) | Confirmed |
+| 14 | Overseas ownership source (`OCOD_DIR`) | Newest HM Land Registry OCOD full file, filtered to `District` = `KENSINGTON AND CHELSEA` | [Overseas companies that own property in England and Wales](https://use-land-property-data.service.gov.uk/datasets/ocod) (free account) | Confirmed |
+| 15 | OCOD layer covers flats and houses | All tenures and property types | Overseas-company ownership is mostly flats; the land share (houses only) and the ownership layer are shown side by side, not combined | Confirmed |
+| 16 | Map location | Postcode centroid from postcodes.io | Neither Price Paid nor OCOD has coordinates. Points are the centre of the postcode, not the building | Confirmed |
+| 17 | OCOD to sale match | Same normalised postcode and same house number or name (PAON or SAON) | Simple exact match, no fuzzy matching. Titles with `Multiple Address Indicator` = Y are not matched to single sales | Confirmed |
 
 ## Validation data
 
@@ -30,6 +35,12 @@ Each assumption lists its value, its source, and its status. Values live in `con
 - After floor area limits: **32,486 (95.8%)**
 
 Matching done by the House Price per Square Metre dataset authors; we join to Price Paid on transaction ID.
+
+### Kensington and Chelsea street map (`python -m src.ocod`)
+
+- House sales in the borough, 2023: **349**. With a postcode location: **349 (100%)**.
+- House sales matched to an overseas-company title (postcode + house number or name): **not yet run**. It needs the OCOD full file in `data/raw/ocod/`. Rerun `python -m src.ocod` and copy the printed figures here.
+- Expect a low match rate. OCOD is today's owners, not 2023 buyers, most overseas-company titles are flats, and category A sales exclude many company sales. The street map therefore shows the two layers side by side rather than relying on the match.
 
 ## Validation
 
@@ -44,3 +55,7 @@ Matching done by the House Price per Square Metre dataset authors; we join to Pr
 - Unmatched addresses can make the sample less representative.
 - EPC floor area can be old or incorrect.
 - One London-wide build cost ignores differences between boroughs. This moves absolute land shares, but the ranking between boroughs is more robust.
+- OCOD lists overseas **companies** only. Titles held by individuals (UK or overseas), UK companies, trusts and nominees are missing, so the red layer undercounts offshore wealth.
+- OCOD is a snapshot of who owns a title now. It does not say who bought or sold in 2023.
+- Map points are postcode centroids. Several homes share one point, and a point is not a front door.
+- The land share uses houses only. Flats appear on the overseas ownership layer only.

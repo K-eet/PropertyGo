@@ -23,6 +23,12 @@ HOUSE_TYPES = ["D", "S", "T"]
 # Category B (repossessions, buy-to-let, company sales) is excluded.
 PPD_CATEGORIES = ["A"]
 
+# Street-level demo: one borough (Kensington and Chelsea).
+TARGET_BOROUGH_CODE = "E09000020"
+TARGET_BOROUGH_NAME = "Kensington and Chelsea"
+# Price Paid / OCOD district strings that mean this borough (upper case).
+TARGET_DISTRICT_NAMES = ("KENSINGTON AND CHELSEA", "KENSINGTON & CHELSEA")
+
 # --- Build cost ------------------------------------------------------------
 # PROVISIONAL: the team must confirm this value and its source in ASSUMPTIONS.md.
 BUILD_COST_PER_M2 = 2500  # GBP per m² of floor area, London, houses
@@ -47,3 +53,10 @@ BOROUGH_SHP = (
 LAND_VALUES_FILE = RAW / "land_value_estimates_2023.xlsx"
 # House price per m² (Price Paid x EPC, pre-linked), one CSV per local authority.
 HPM_DIR = RAW / "hpm" / "hpm_la_2024" / "hpm_la_2024"
+# Overseas companies that own property (Land Registry OCOD). Unzip the full file here;
+# the newest OCOD_FULL_*.csv is used. example.csv (public sample) is only used for column checks.
+OCOD_DIR = RAW / "ocod"
+OCOD_GLOB = "OCOD_FULL_*.csv"
+
+# postcodes.io bulk lookup allows at most this many postcodes per request.
+POSTCODES_BULK_LIMIT = 100
