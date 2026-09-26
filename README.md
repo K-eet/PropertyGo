@@ -13,6 +13,7 @@ python -m src.linked      # London house sales linked to EPC floor area
 python -m src.analysis    # land share and borough summary
 python -m src.map         # borough map
 python -m src.locate      # location + neighbourhood (MSOA) for every sale, for the detailed map
+python -m src.check       # print a setup fingerprint to compare machines (data/ is not in git)
 python -m src.ocod        # Kensington and Chelsea sales + overseas-company titles (needs OCOD in data/raw/ocod/)
 streamlit run app.py      # demo: street map and postcode lookup
 ```
